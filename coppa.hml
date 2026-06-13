@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Cup 2026 – Dati Real Time</title>
+    <!-- Chart.js per i grafici -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #f0f2f5;
+            padding: 2rem 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #1a1a2e;
+            font-size: 2rem;
+            border-left: 6px solid #e63946;
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .kpi-card {
+            background: white;
+            padding: 1.2rem;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .kpi-card .number {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #1d3557;
+        }
+        .kpi-card .label {
+            color: #457b9d;
+            font-weight: 500;
+            margin-top: 0.3rem;
+        }
+        .two-columns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .column {
+            flex: 1 1 400px;
+            min-width: 280px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            margin-bottom: 2rem;
+        }
+        .card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #1d3557;
+        }
+        .group-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .group-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            flex: 1 1 180px;
+        }
+        .group-box h3 {
+            font-size: 1rem;
+            color: #e63946;
+            margin-bottom: 0.4rem;
+        }
+        .group-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .group-box li {
+            padding: 0.15rem 0;
+            font-weight: 500;
+        }
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .filters select, .filters input {
+            padding: 0.5rem 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            background: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th {
+            background: #1d3557;
+            color: white;
+            padding: 0.65rem 0.5rem;
+            text-align: left;
+        }
+        td {
+            padding: 0.5rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .chart-container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        #loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            font-size: 1.5rem;
+            color: #457b9d;
+        }
+        #error {
+            text-align: center;
+            padding: 3rem;
+            color: #e63946;
+            background: #ffe5e5;
+            border-radius: 20px;
+            display: none;
+        }
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+            .kpi-card .number { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <h1>⚽ Coppa del Mondo 2026 – USA</h1>
+
+    <div id="loading">Caricamento dati reali in corso...</div>
+    <div id="error"></div>
+
+    <div id="content" style="display:none;">
+        <!-- KPI -->
+        <div class="kpi-grid" id="kpiContainer"></div>
+
+        <!-- Gruppi e partite affiancati -->
+        <div class="two-columns">
+            <div class="column">
+                <div class="card">
+                    <h2>🏆 Gruppi</h2>
+                    <div class="group-list" id="groupContainer"></div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="card">
+                    <h2>📊 Partite per stadio</h2>
+                    <div class="chart-container">
+                        <canvas id="stadiumChart" width="400" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabella partite con filtri -->
+        <div class="card">
+            <h2>📅 Calendario partite</h2>
+            <div class="filters">
+                <select id="filterGroup">
+                    <option value="">Tutti i gruppi</option>
+                </select>
+                <select id="filterStadium">
+                    <option value="">Tutti gli stadi</option>
+                </select>
+                <select id="filterPhase">
+                    <option value="">Tutte le fasi</option>
+                </select>
+                <input type="text" id="filterTeam" placeholder="Cerca squadra..." style="flex:1; min-width:150px;">
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Ora</th>
+                            <th>Casa</th>
+                            <th>Ospite</th>
+                            <th>Stadio</th>
+                            <th>Gruppo/Fase</th>
+                        </tr>
+                    </thead>
+                    <tbody id="matchesTableBody"></tbody>
+                </table>
+            </div>
+            <p id="matchCount" style="margin-top:0.8rem; font-weight:500;"></p>
+        </div>
+    </div>
+
+    <script>
+        (async function() {
+            const loadingEl = document.getElementById('loading');
+            const contentEl = document.getElementById('content');
+            const errorEl = document.getElementById('error');
+
+            try {
+                // 1. Scarica il file cup.txt
+                const url = 'https://raw.githubusercontent.com/openfootball/worldcup/refs/heads/master/2026--usa/cup.txt';
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error(`HTTP resp.status:{resp.status}:resp.status:{resp.statusText}`);
+                const text = await resp.text();
+
+                // 2. Parsing
+                const parsed = parseCupText(text);
+                console.log('Dati parsati:', parsed);
+
+                // 3. Popola la pagina
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'block';
+                populateKPI(parsed);
+                renderGroups(parsed.groups);
+                renderStadiumChart(parsed.matches);
+                populateFilters(parsed);
+                renderMatchesTable(parsed.matches);
+                setupFilters(parsed);
+
+            } catch (err) {
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                errorEl.innerHTML = `❌ Errore nel caricamento dei dati: <strong>${err.message}</strong><br>
+                Verifica che il file esista o riprova più tardi.`;
+            }
+        })();
+
+       
