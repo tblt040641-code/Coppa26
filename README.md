@@ -1,4 +1,4 @@
--
+Coppa26
 
 # Annunci / Status del progetto
 
