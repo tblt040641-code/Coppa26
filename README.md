@@ -30,12 +30,7 @@ Coppa del mondo 2026 - wip -
 ## Come installare
 
 -1- coppa.html ( base )  
-``` html
 
-[!](https://tblt040641-code.github.io/Coppa26/coppa.html)
-
-
-```
 
 ## Documentazione
 ### Link a documentazione esterna 
