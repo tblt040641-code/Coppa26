@@ -32,7 +32,7 @@ Coppa del mondo 2026 - wip -
 -1- coppa.html ( base )  
 ``` html
 
-[![(https://tblt040641-code.github.io/Coppa26/coppa.html)
+[!](https://tblt040641-code.github.io/Coppa26/coppa.html)
 
 
 ```
