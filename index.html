@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIFA World Cup 2026 – Dashboard v2</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+<style>
+:root{
+  --bg:#0a0e1a;--bg-card:#111827;--bg-card2:#141e30;--bg-row:#0f1624;
+  --accent:#e8b923;--accent2:#3b82f6;--accent3:#10b981;--accent4:#ef4444;--accent5:#a855f7;
+  --text:#f1f5f9;--text2:#94a3b8;--border:#1e2d45;
+  --gold:#fbbf24;--silver:#94a3b8;--bronze:#cd7f32;
+  --radius:12px;--gap:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+/* HEADER */
+.header{background:linear-gradient(135deg,#0f1728,#1a2744 50%,#0f1728);border-bottom:2px solid var(--accent);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.header-left{display:flex;align-items:center;gap:16px}
+.wc-badge{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#b8860b);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(232,185,35,.4)}
+.header h1{font-size:20px;font-weight:700;color:var(--accent)}
+.header .subtitle{font-size:11px;color:var(--text2);margin-top:2px}
+/* NAV */
+.nav{display:flex;gap:6px;flex-wrap:wrap}
+.nav-btn{padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text2);cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;letter-spacing:.3px}
+.nav-btn:hover,.nav-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.live-dot{background:var(--accent4);color:#fff;font-size:11px;padding:3px 8px;border-radius:10px;font-weight:700;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+/* LAYOUT */
+.container{max-width:1400px;margin:0 auto;padding:var(--gap)}
+.sec-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin:18px 0 10px;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--gap)}
+.g7030{display:grid;grid-template-columns:2fr 1fr;gap:var(--gap)}
+.g4060{display:grid;grid-template-columns:2fr 3fr;gap:var(--gap)}
+.g3070{display:grid;grid-template-columns:1fr 2fr;gap:var(--gap)}
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--gap);margin-bottom:4px}
+.kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kpi-color,var(--accent))}
+.kpi-icon{font-size:20px;margin-bottom:7px}
+.kpi-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.kpi-value{font-size:26px;font-weight:800;color:var(--text);line-height:1}
+.kpi-sub{font-size:11px;color:var(--text2);margin-top:4px}
+/* CARD */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+.card h3{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.tag{background:var(--accent);color:#000;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700}
+.tag-blue{background:var(--accent2);color:#fff;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700}
+/* TABS */
+.tab-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+.tab{padding:5px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text2);cursor:pointer;font-size:12px;transition:all .15s}
+.tab.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:700}
+.tab:hover:not(.active){border-color:var(--accent2);color:var(--text)}
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{color:var(--text2);font-weight:600;font-size:10px;text-transform:uppercase;padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);letter-spacing:.5px;white-space:nowrap}
+.tbl th:first-child{text-align:left}
+.tbl td{padding:7px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.04)}
+.tbl td:first-child{text-align:left}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.03)}
+.pts-b{background:var(--accent);color:#000;font-weight:800;padding:2px 7px;border-radius:5px;font-size:12px}
+.qrow{border-left:3px solid var(--accent3)}
+.q3row{border-left:3px solid var(--accent2)}
+/* RESULTS */
+.ri{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card2);margin-bottom:5px;font-size:12px}
+.ri:hover{border-color:var(--accent2)}
+.ri-teams{flex:1;display:flex;align-items:center;gap:6px;justify-content:space-between}
+.tn{font-weight:600;flex:1}
+.tn.r{text-align:right}
+.sb{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-weight:800;font-size:13px;color:var(--accent);white-space:nowrap}
+.ri-meta{font-size:10px;color:var(--text2);text-align:right;min-width:70px}
+.gtag{font-size:10px;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px}
+/* SCORER */
+.sc-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.sc-row:last-child{border-bottom:none}
+.sc-rank{width:20px;font-size:12px;font-weight:700;color:var(--text2)}
+.sc-rank.r1{color:var(--gold)}.sc-rank.r2{color:var(--silver)}.sc-rank.r3{color:var(--bronze)}
+.sc-info{flex:1;min-width:0}
+.sc-name{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-meta{font-size:10px;color:var(--text2);margin-top:1px}
+.sc-club{font-size:10px;color:var(--accent2);margin-top:1px}
+.sc-goals-n{font-size:18px;font-weight:800;color:var(--accent);min-width:24px;text-align:right}
+/* HIGHLIGHT CARD */
+.hl-card{background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px}
+.hl-card:hover{border-color:var(--accent)}
+.hl-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-bottom:8px}
+.hl-match{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.hl-team{font-size:14px;font-weight:700;flex:1}
+.hl-team.r{text-align:right}
+.hl-score{font-size:22px;font-weight:900;color:var(--accent);padding:0 12px;white-space:nowrap}
+.hl-ht{font-size:11px;color:var(--text2);text-align:center;margin-bottom:6px}
+.hl-goallist{font-size:11px;color:var(--text2)}
+.hl-meta{font-size:10px;color:var(--text2);margin-top:6px}
+/* CLUB ROW */
+.club-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.club-row:last-child{border-bottom:none}
+.club-logo{width:28px;height:28px;border-radius:50%;background:var(--bg-card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.club-info{flex:1;min-width:0}
+.club-name{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.club-meta{font-size:10px;color:var(--text2);margin-top:1px}
+.club-goals{font-size:18px;font-weight:800;color:var(--accent);min-width:30px;text-align:right}
+/* NATION BAR */
+.nat-bar{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px}
+.nat-flag{font-size:18px;min-width:28px}
+.nat-name{min-width:36px;font-weight:700;font-size:11px}
+.nat-track{flex:1;background:var(--border);border-radius:4px;height:8px}
+.nat-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent2),var(--accent3))}
+.nat-count{color:var(--accent);font-weight:800;min-width:24px;text-align:right}
+/* HEATMAP */
+.hmap{display:flex;flex-direction:column;gap:4px}
+.hmap-row{display:flex;align-items:center;gap:6px;font-size:11px}
+.hmap-label{color:var(--text2);min-width:48px;text-align:right}
+.hmap-bar{flex:1;background:var(--border);border-radius:4px;height:18px;position:relative;overflow:hidden}
+.hmap-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:6px;font-size:10px;font-weight:700;color:#000;transition:width .4s ease}
+.hmap-val{color:var(--text2);min-width:20px;text-align:right}
+/* UPCOMING */
+.upc-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;border:1px solid var(--border);margin-bottom:5px;font-size:12px}
+.upc-row:hover{border-color:var(--accent3)}
+.upc-date{color:var(--accent3);min-width:60px;font-weight:600}
+.upc-teams{flex:1;font-weight:600}
+.upc-g{font-size:10px;color:var(--text2);text-align:right}
+/* SCROLL */
+.scroll-y{max-height:380px;overflow-y:auto;padding-right:4px}
+.scroll-y::-webkit-scrollbar{width:3px}
+.scroll-y::-webkit-scrollbar-track{background:var(--border);border-radius:2px}
+.scroll-y::-webkit-scrollbar-thumb{background:var(--accent2);border-radius:2px}
+/* VIEWS */
+.view{display:none}.view.active{display:block}
+/* RESPONSIVE */
+@media(max-width:900px){.g2,.g3,.g7030,.g4060,.g3070{grid-template-columns:1fr}}
+@media(max-width:600px){.kpi-row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-left">
+    <div class="wc-badge">⚽</div>
+    <div>
+      <h1>FIFA World Cup 2026</h1>
+      <div class="subtitle">Canada · USA · Mexico &nbsp;·&nbsp; 11 Giu – 19 Lug 2026 &nbsp;·&nbsp; dati: openfootball/worldcup.json</div>
+    </div>
+  </div>
+  <div class="nav">
+    <span class="live-dot">● LIVE</span>
+    <button class="nav-btn active" onclick="showView('overview',this)">📊 Overview</button>
+    <button class="nav-btn" onclick="showView('highlights',this)">🏆 Highlights</button>
+    <button class="nav-btn" onclick="showView('groups',this)">🏟️ Gruppi</button>
+    <button class="nav-btn" onclick="showView('results',this)">📋 Risultati</button>
+    <button class="nav-btn" onclick="showView('scorers',this)">👟 Marcatori</button>
+    <button class="nav-btn" onclick="showView('clubs',this)">🏛️ Club</button>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ══════════════════════════ OVERVIEW ══════════════════════════ -->
+<div id="view-overview" class="view active">
+  <div class="sec-title">📊 Snapshot Torneo – Fase a Gironi</div>
+  <div class="kpi-row">
+    <div class="kpi-card" style="--kpi-color:#e8b923">
+      <div class="kpi-icon">🏆</div><div class="kpi-label">Partite Giocate</div>
+      <div class="kpi-value" id="kpi-played">–</div><div class="kpi-sub">su 72 (fase gironi)</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:#10b981">
+      <div class="kpi-icon">⚽</div><div class="kpi-label">Gol Totali</div>
+      <div class="kpi-value" id="kpi-goals">–</div><div class="kpi-sub" id="kpi-avg">–</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:#3b82f6">
+      <div class="kpi-icon">🤝</div><div class="kpi-label">Pareggi</div>
+      <div class="kpi-value" id="kpi-draws">–</div><div class="kpi-sub" id="kpi-draws-pct">–</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:#ef4444">
+      <div class="kpi-icon">👑</div><div class="kpi-label">Capocannoniere</div>
+      <div class="kpi-value" style="font-size:15px" id="kpi-top">–</div><div class="kpi-sub" id="kpi-top-sub">–</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:#a855f7">
+      <div class="kpi-icon">🔥</div><div class="kpi-label">Top Club</div>
+      <div class="kpi-value" style="font-size:15px" id="kpi-topclub">–</div><div class="kpi-sub" id="kpi-topclub-sub">–</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:#f97316">
+      <div class="kpi-icon">🌍</div><div class="kpi-label">Liga Top (gol)</div>
+      <div class="kpi-value" style="font-size:15px" id="kpi-topnat">–</div><div class="kpi-sub" id="kpi-topnat-sub">–</div>
+    </div>
+  </div>
+  <div class="g7030" style="margin-top:var(--gap)">
+    <div class="g2">
+      <div class="card">
+        <h3>⚽ Gol per Fascia Oraria</h3>
+        <canvas id="goalTimingChart" style="max-height:200px"></canvas>
+      </div>
+      <div class="card">
+        <h3>🌍 Gol per Nazione (Top 10)</h3>
+        <canvas id="teamGoalsChart" style="max-height:200px"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h3>📅 Prossime Partite <span class="tag-blue">UPCOMING</span></h3>
+      <div class="scroll-y" id="upcoming-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ HIGHLIGHTS ══════════════════════════ -->
+<div id="view-highlights" class="view">
+  <div class="sec-title">🏆 Highlights – Le Partite da Ricordare</div>
+  <div class="g3">
+    <div class="card">
+      <h3>💥 Più Gol in Assoluto <span class="tag">TOTALE</span></h3>
+      <div id="hl-total"></div>
+    </div>
+    <div class="card">
+      <h3>⚡ Più Gol nel 1° Tempo <span class="tag-blue">1T</span></h3>
+      <div id="hl-ht"></div>
+    </div>
+    <div class="card">
+      <h3>🔥 Più Gol nel 2° Tempo <span class="tag" style="background:var(--accent4);color:#fff">2T</span></h3>
+      <div id="hl-sh"></div>
+    </div>
+  </div>
+  <div class="sec-title" style="margin-top:20px">🎯 Concentrazione dei Gol nel Tempo</div>
+  <div class="g2">
+    <div class="card">
+      <h3>📊 Heatmap Gol per Minuto (intervalli 5')</h3>
+      <div id="heatmap-container"></div>
+    </div>
+    <div class="card">
+      <h3>📈 Distribuzione per Fascia</h3>
+      <canvas id="goalTimingFineChart" style="max-height:260px"></canvas>
+    </div>
+  </div>
+  <div class="sec-title" style="margin-top:20px">🏅 Top Team – Gol & Punti</div>
+  <div class="g2">
+    <div class="card">
+      <h3>⚽ Top Team per Gol Segnati</h3>
+      <div id="top-team-goals"></div>
+    </div>
+    <div class="card">
+      <h3>🏆 Top Team per Punti</h3>
+      <div id="top-team-pts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ GROUPS ══════════════════════════ -->
+<div id="view-groups" class="view">
+  <div class="sec-title">🏟️ Fase a Gironi – Classifiche</div>
+  <div class="tab-bar" id="group-tabs"></div>
+  <div id="group-content"></div>
+</div>
+
+<!-- ══════════════════════════ RESULTS ══════════════════════════ -->
+<div id="view-results" class="view">
+  <div class="sec-title">📋 Risultati – Fase a Gironi</div>
+  <div class="g4060">
+    <div class="card">
+      <h3>🔍 Filtra per Gruppo</h3>
+      <div class="tab-bar" id="result-tabs" style="flex-direction:column;align-items:flex-start;gap:4px"></div>
+    </div>
+    <div class="card">
+      <h3>Risultati <span class="tag" id="res-count">0</span></h3>
+      <div class="scroll-y" id="results-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ SCORERS ══════════════════════════ -->
+<div id="view-scorers" class="view">
+  <div class="sec-title">👟 Classifica Marcatori – con Club di Appartenenza</div>
+  <div class="g3070">
+    <div class="card">
+      <h3>📊 Gol per Club (Top 8)</h3>
+      <canvas id="scorerClubChart" style="max-height:300px"></canvas>
+    </div>
+    <div class="card" style="min-height:0">
+      <h3>🥇 Marcatori <span class="tag" id="scorer-count">0</span></h3>
+      <div class="scroll-y" style="max-height:500px" id="scorers-full"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ CLUBS ══════════════════════════ -->
+<div id="view-clubs" class="view">
+  <div class="sec-title">🏛️ Top Club & Nazioni di Campionato</div>
+  <div class="g2">
+    <div class="card">
+      <h3>🏛️ Top Club per Gol al Mondiale <span class="tag" id="club-count">0</span></h3>
+      <div class="scroll-y" style="max-height:480px" id="clubs-list"></div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:var(--gap)">
+        <h3>🌍 Top Nazione di Campionato per Gol</h3>
+        <canvas id="clubNationChart" style="max-height:220px"></canvas>
+      </div>
+      <div class="card">
+        <h3>📊 Gol per Lega (barre)</h3>
+        <div id="nation-bars"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const DATA = {"groups_standings": {"Group A": [{"name": "Mexico", "p": 2, "w": 2, "d": 0, "l": 0, "gf": 3, "ga": 0, "pts": 6, "group": "Group A", "gd": 3}, {"name": "South Korea", "p": 2, "w": 1, "d": 0, "l": 1, "gf": 2, "ga": 2, "pts": 3, "group": "Group A", "gd": 0}, {"name": "Czech Republic", "p": 2, "w": 0, "d": 1, "l": 1, "gf": 2, "ga": 3, "pts": 1, "group": "Group A", "gd": -1}, {"name": "South Africa", "p": 2, "w": 0, "d": 1, "l": 1, "gf": 1, "ga": 3, "pts": 1, "group": "Group A", "gd": -2}], "Group B": [{"name": "Canada", "p": 2, "w": 1, "d": 1, "l": 0, "gf": 7, "ga": 1, "pts": 4, "group": "Group B", "gd": 6}, {"name": "Switzerland", "p": 2, "w": 1, "d": 1, "l": 0, "gf": 5, "ga": 2, "pts": 4, "group": "Group B", "gd": 3}, {"name": "Bosnia & Herzegovina", "p": 2, "w": 0, "d": 1, "l": 1, "gf": 2, "ga": 5, "pts": 1, "group": "Group B", "gd": -3}, {"name": "Qatar", "p": 2, "w": 0, "d": 1, "l": 1, "gf": 1, "ga": 7, "pts": 1, "group": "Group B", "gd": -6}], "Group C": [{"name": "Brazil", "p": 2, "w": 1, "d": 1, "l": 0, "gf": 4, "ga": 1, "pts": 4, "group": "Group C", "gd": 3}, {"name": "Morocco", "p": 2, "w": 1, "d": 1, "l": 0, "gf": 2, "ga": 1, "pts": 4, "group": "Group C", "gd": 1}, {"name": "Scotland", "p": 2, "w": 1, "d": 0, "l": 1, "gf": 1, "ga": 1, "pts": 3, "group": "Group C", "gd": 0}, {"name": "Haiti", "p": 2, "w": 0, "d": 0, "l": 2, "gf": 0, "ga": 4, "pts": 0, "group": "Group C", "gd": -4}], "Group D": [{"name": "USA", "p": 2, "w": 2, "d": 0, "l": 0, "gf": 6, "ga": 1, "pts": 6, "group": "Group D", "gd": 5}, {"name": "Australia", "p": 2, "w": 1, "d": 0, "l": 1, "gf": 2, "ga": 2, "pts": 3, "group": "Group D", "gd": 0}, {"name": "Paraguay", "p": 2, "w": 1, "d": 0, "l": 1, "gf": 2, "ga": 4, "pts": 3, "group": "Group D", "gd": -2}, {"name": "Turkey", "p": 2, "w": 0, "d": 0, "l": 2, "gf": 0, "ga": 3, "pts": 0, "group": "Group D", "gd": -3}], "Group E": [{"name": "Germany", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 7, "ga": 1, "pts": 3, "group": "Group E", "gd": 6}, {"name": "Ivory Coast", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 1, "ga": 0, "pts": 3, "group": "Group E", "gd": 1}, {"name": "Ecuador", "p": 1, "w": 0, "d": 0, "l": 1, "gf": 0, "ga": 1, "pts": 0, "group": "Group E", "gd": -1}, {"name": "Curaçao", "p": 1, "w": 0, "d": 0, "l": 1, "gf": 1, "ga": 7, "pts": 0, "group": "Group E", "gd": -6}], "Group F": [{"name": "Sweden", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 5, "ga": 1, "pts": 3, "group": "Group F", "gd": 4}, {"name": "Netherlands", "p": 1, "w": 0, "d": 1, "l": 0, "gf": 2, "ga": 2, "pts": 1, "group": "Group F", "gd": 0}, {"name": "Japan", "p": 1, "w": 0, "d": 1, "l": 0, "gf": 2, "ga": 2, "pts": 1, "group": "Group F", "gd": 0}, {"name": "Tunisia", "p": 1, "w": 0, "d": 0, "l": 1, "gf": 1, "ga": 5, "pts": 0, "group": "Group F", "gd": -4}], "Group G": [{"name": "Iran", "p": 1, "w": 0, "d": 1, "l": 0, "gf": 2, "ga": 2, "pts": 1, "group": "Group G", "gd": 0}, {"name": "New Zealand", "p": 1, "w": 0, "d": 1, "l": 0, "gf": 2, "ga": 2, "pts": 1, "group": "Group G", "gd": 0}, {"name": "Belgium", "p": 1, "w": 0, "d": 1, "l": 0, "gf": 1, "ga": 1, "pts": 1, "group": "Group G", "gd": 0}, {"name": "Egypt", "p": 1, "w": 0, "d": 1, "l": 0, "gf": 1, "ga": 1, "pts": 1, "group": "Group G", "gd": 0}], "Group H": [{"name": "Saudi Arabia", "p": 1, "w": 0, "d": 1, "l": 0, "gf": 1, "ga": 1, "pts": 1, "group": "Group H", "gd": 0}, {"name": "Uruguay", "p": 1, "w": 0, "d": 1, "l": 0, "gf": 1, "ga": 1, "pts": 1, "group": "Group H", "gd": 0}, {"name": "Spain", "p": 1, "w": 0, "d": 1, "l": 0, "gf": 0, "ga": 0, "pts": 1, "group": "Group H", "gd": 0}, {"name": "Cape Verde", "p": 1, "w": 0, "d": 1, "l": 0, "gf": 0, "ga": 0, "pts": 1, "group": "Group H", "gd": 0}], "Group I": [{"name": "Norway", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 4, "ga": 1, "pts": 3, "group": "Group I", "gd": 3}, {"name": "France", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 3, "ga": 1, "pts": 3, "group": "Group I", "gd": 2}, {"name": "Senegal", "p": 1, "w": 0, "d": 0, "l": 1, "gf": 1, "ga": 3, "pts": 0, "group": "Group I", "gd": -2}, {"name": "Iraq", "p": 1, "w": 0, "d": 0, "l": 1, "gf": 1, "ga": 4, "pts": 0, "group": "Group I", "gd": -3}], "Group J": [{"name": "Argentina", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 3, "ga": 0, "pts": 3, "group": "Group J", "gd": 3}, {"name": "Austria", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 3, "ga": 1, "pts": 3, "group": "Group J", "gd": 2}, {"name": "Jordan", "p": 1, "w": 0, "d": 0, "l": 1, "gf": 1, "ga": 3, "pts": 0, "group": "Group J", "gd": -2}, {"name": "Algeria", "p": 1, "w": 0, "d": 0, "l": 1, "gf": 0, "ga": 3, "pts": 0, "group": "Group J", "gd": -3}], "Group K": [{"name": "Colombia", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 3, "ga": 1, "pts": 3, "group": "Group K", "gd": 2}, {"name": "Portugal", "p": 1, "w": 0, "d": 1, "l": 0, "gf": 1, "ga": 1, "pts": 1, "group": "Group K", "gd": 0}, {"name": "DR Congo", "p": 1, "w": 0, "d": 1, "l": 0, "gf": 1, "ga": 1, "pts": 1, "group": "Group K", "gd": 0}, {"name": "Uzbekistan", "p": 1, "w": 0, "d": 0, "l": 1, "gf": 1, "ga": 3, "pts": 0, "group": "Group K", "gd": -2}], "Group L": [{"name": "England", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 4, "ga": 2, "pts": 3, "group": "Group L", "gd": 2}, {"name": "Ghana", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 1, "ga": 0, "pts": 3, "group": "Group L", "gd": 1}, {"name": "Panama", "p": 1, "w": 0, "d": 0, "l": 1, "gf": 0, "ga": 1, "pts": 0, "group": "Group L", "gd": -1}, {"name": "Croatia", "p": 1, "w": 0, "d": 0, "l": 1, "gf": 2, "ga": 4, "pts": 0, "group": "Group L", "gd": -2}]}, "results": [{"date": "2026-06-11", "team1": "Mexico", "team2": "South Africa", "score": "2-0", "group": "Group A", "ground": "Mexico City", "g1": 2, "g2": 0, "total": 2}, {"date": "2026-06-11", "team1": "South Korea", "team2": "Czech Republic", "score": "2-1", "group": "Group A", "ground": "Guadalajara (Zapopan)", "g1": 2, "g2": 1, "total": 3}, {"date": "2026-06-18", "team1": "Czech Republic", "team2": "South Africa", "score": "1-1", "group": "Group A", "ground": "Atlanta", "g1": 1, "g2": 1, "total": 2}, {"date": "2026-06-18", "team1": "Mexico", "team2": "South Korea", "score": "1-0", "group": "Group A", "ground": "Guadalajara (Zapopan)", "g1": 1, "g2": 0, "total": 1}, {"date": "2026-06-12", "team1": "Canada", "team2": "Bosnia & Herzegovina", "score": "1-1", "group": "Group B", "ground": "Toronto", "g1": 1, "g2": 1, "total": 2}, {"date": "2026-06-13", "team1": "Qatar", "team2": "Switzerland", "score": "1-1", "group": "Group B", "ground": "San Francisco Bay Area (Santa Clara)", "g1": 1, "g2": 1, "total": 2}, {"date": "2026-06-18", "team1": "Switzerland", "team2": "Bosnia & Herzegovina", "score": "4-1", "group": "Group B", "ground": "Los Angeles (Inglewood)", "g1": 4, "g2": 1, "total": 5}, {"date": "2026-06-18", "team1": "Canada", "team2": "Qatar", "score": "6-0", "group": "Group B", "ground": "Vancouver", "g1": 6, "g2": 0, "total": 6}, {"date": "2026-06-13", "team1": "Brazil", "team2": "Morocco", "score": "1-1", "group": "Group C", "ground": "New York/New Jersey (East Rutherford)", "g1": 1, "g2": 1, "total": 2}, {"date": "2026-06-13", "team1": "Haiti", "team2": "Scotland", "score": "0-1", "group": "Group C", "ground": "Boston (Foxborough)", "g1": 0, "g2": 1, "total": 1}, {"date": "2026-06-19", "team1": "Scotland", "team2": "Morocco", "score": "0-1", "group": "Group C", "ground": "Boston (Foxborough)", "g1": 0, "g2": 1, "total": 1}, {"date": "2026-06-19", "team1": "Brazil", "team2": "Haiti", "score": "3-0", "group": "Group C", "ground": "Philadelphia", "g1": 3, "g2": 0, "total": 3}, {"date": "2026-06-12", "team1": "USA", "team2": "Paraguay", "score": "4-1", "group": "Group D", "ground": "Los Angeles (Inglewood)", "g1": 4, "g2": 1, "total": 5}, {"date": "2026-06-13", "team1": "Australia", "team2": "Turkey", "score": "2-0", "group": "Group D", "ground": "Vancouver", "g1": 2, "g2": 0, "total": 2}, {"date": "2026-06-19", "team1": "USA", "team2": "Australia", "score": "2-0", "group": "Group D", "ground": "Seattle", "g1": 2, "g2": 0, "total": 2}, {"date": "2026-06-19", "team1": "Turkey", "team2": "Paraguay", "score": "0-1", "group": "Group D", "ground": "San Francisco Bay Area (Santa Clara)", "g1": 0, "g2": 1, "total": 1}, {"date": "2026-06-14", "team1": "Germany", "team2": "Curaçao", "score": "7-1", "group": "Group E", "ground": "Houston", "g1": 7, "g2": 1, "total": 8}, {"date": "2026-06-14", "team1": "Ivory Coast", "team2": "Ecuador", "score": "1-0", "group": "Group E", "ground": "Philadelphia", "g1": 1, "g2": 0, "total": 1}, {"date": "2026-06-14", "team1": "Netherlands", "team2": "Japan", "score": "2-2", "group": "Group F", "ground": "Dallas (Arlington)", "g1": 2, "g2": 2, "total": 4}, {"date": "2026-06-14", "team1": "Sweden", "team2": "Tunisia", "score": "5-1", "group": "Group F", "ground": "Monterrey (Guadalupe)", "g1": 5, "g2": 1, "total": 6}, {"date": "2026-06-15", "team1": "Belgium", "team2": "Egypt", "score": "1-1", "group": "Group G", "ground": "Seattle", "g1": 1, "g2": 1, "total": 2}, {"date": "2026-06-15", "team1": "Iran", "team2": "New Zealand", "score": "2-2", "group": "Group G", "ground": "Los Angeles (Inglewood)", "g1": 2, "g2": 2, "total": 4}, {"date": "2026-06-15", "team1": "Spain", "team2": "Cape Verde", "score": "0-0", "group": "Group H", "ground": "Atlanta", "g1": 0, "g2": 0, "total": 0}, {"date": "2026-06-15", "team1": "Saudi Arabia", "team2": "Uruguay", "score": "1-1", "group": "Group H", "ground": "Miami (Miami Gardens)", "g1": 1, "g2": 1, "total": 2}, {"date": "2026-06-16", "team1": "France", "team2": "Senegal", "score": "3-1", "group": "Group I", "ground": "New York/New Jersey (East Rutherford)", "g1": 3, "g2": 1, "total": 4}, {"date": "2026-06-16", "team1": "Iraq", "team2": "Norway", "score": "1-4", "group": "Group I", "ground": "Boston (Foxborough)", "g1": 1, "g2": 4, "total": 5}, {"date": "2026-06-16", "team1": "Argentina", "team2": "Algeria", "score": "3-0", "group": "Group J", "ground": "Kansas City", "g1": 3, "g2": 0, "total": 3}, {"date": "2026-06-16", "team1": "Austria", "team2": "Jordan", "score": "3-1", "group": "Group J", "ground": "San Francisco Bay Area (Santa Clara)", "g1": 3, "g2": 1, "total": 4}, {"date": "2026-06-17", "team1": "Portugal", "team2": "DR Congo", "score": "1-1", "group": "Group K", "ground": "Houston", "g1": 1, "g2": 1, "total": 2}, {"date": "2026-06-17", "team1": "Uzbekistan", "team2": "Colombia", "score": "1-3", "group": "Group K", "ground": "Mexico City", "g1": 1, "g2": 3, "total": 4}, {"date": "2026-06-17", "team1": "England", "team2": "Croatia", "score": "4-2", "group": "Group L", "ground": "Dallas (Arlington)", "g1": 4, "g2": 2, "total": 6}, {"date": "2026-06-17", "team1": "Ghana", "team2": "Panama", "score": "1-0", "group": "Group L", "ground": "Toronto", "g1": 1, "g2": 0, "total": 1}], "upcoming": [{"date": "2026-06-24", "time": "19:00 UTC-6", "team1": "Czech Republic", "team2": "Mexico", "group": "Group A", "ground": "Mexico City"}, {"date": "2026-06-24", "time": "19:00 UTC-6", "team1": "South Africa", "team2": "South Korea", "group": "Group A", "ground": "Monterrey (Guadalupe)"}, {"date": "2026-06-24", "time": "12:00 UTC-7", "team1": "Switzerland", "team2": "Canada", "group": "Group B", "ground": "Vancouver"}, {"date": "2026-06-24", "time": "12:00 UTC-7", "team1": "Bosnia & Herzegovina", "team2": "Qatar", "group": "Group B", "ground": "Seattle"}, {"date": "2026-06-24", "time": "18:00 UTC-4", "team1": "Scotland", "team2": "Brazil", "group": "Group C", "ground": "Miami (Miami Gardens)"}, {"date": "2026-06-24", "time": "18:00 UTC-4", "team1": "Morocco", "team2": "Haiti", "group": "Group C", "ground": "Atlanta"}, {"date": "2026-06-25", "time": "19:00 UTC-7", "team1": "Turkey", "team2": "USA", "group": "Group D", "ground": "Los Angeles (Inglewood)"}, {"date": "2026-06-25", "time": "19:00 UTC-7", "team1": "Paraguay", "team2": "Australia", "group": "Group D", "ground": "San Francisco Bay Area (Santa Clara)"}, {"date": "2026-06-20", "time": "16:00 UTC-4", "team1": "Germany", "team2": "Ivory Coast", "group": "Group E", "ground": "Toronto"}, {"date": "2026-06-20", "time": "19:00 UTC-5", "team1": "Ecuador", "team2": "Curaçao", "group": "Group E", "ground": "Kansas City"}, {"date": "2026-06-25", "time": "16:00 UTC-4", "team1": "Curaçao", "team2": "Ivory Coast", "group": "Group E", "ground": "Philadelphia"}, {"date": "2026-06-25", "time": "16:00 UTC-4", "team1": "Ecuador", "team2": "Germany", "group": "Group E", "ground": "New York/New Jersey (East Rutherford)"}, {"date": "2026-06-20", "time": "12:00 UTC-5", "team1": "Netherlands", "team2": "Sweden", "group": "Group F", "ground": "Houston"}, {"date": "2026-06-20", "time": "22:00 UTC-6", "team1": "Tunisia", "team2": "Japan", "group": "Group F", "ground": "Monterrey (Guadalupe)"}, {"date": "2026-06-25", "time": "18:00 UTC-5", "team1": "Japan", "team2": "Sweden", "group": "Group F", "ground": "Dallas (Arlington)"}, {"date": "2026-06-25", "time": "18:00 UTC-5", "team1": "Tunisia", "team2": "Netherlands", "group": "Group F", "ground": "Kansas City"}, {"date": "2026-06-21", "time": "12:00 UTC-7", "team1": "Belgium", "team2": "Iran", "group": "Group G", "ground": "Los Angeles (Inglewood)"}, {"date": "2026-06-21", "time": "18:00 UTC-7", "team1": "New Zealand", "team2": "Egypt", "group": "Group G", "ground": "Vancouver"}, {"date": "2026-06-26", "time": "20:00 UTC-7", "team1": "Egypt", "team2": "Iran", "group": "Group G", "ground": "Seattle"}, {"date": "2026-06-26", "time": "20:00 UTC-7", "team1": "New Zealand", "team2": "Belgium", "group": "Group G", "ground": "Vancouver"}], "top_scorers": [{"name": "Jonathan David", "goals": 3, "team": "Canada", "club": "Juventus FC", "club_country": "ITA", "penalties": 0, "og": 0}, {"name": "Lionel Messi", "goals": 3, "team": "Argentina", "club": "Inter Miami CF", "club_country": "USA", "penalties": 0, "og": 0}, {"name": "Cyle Larin", "goals": 2, "team": "Canada", "club": "Southampton FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Johan Manzambi", "goals": 2, "team": "Switzerland", "club": "SC Freiburg", "club_country": "GER", "penalties": 0, "og": 0}, {"name": "Vinícius Júnior", "goals": 2, "team": "Brazil", "club": "Real Madrid C. F.", "club_country": "ESP", "penalties": 0, "og": 0}, {"name": "Ismael Saibari", "goals": 2, "team": "Morocco", "club": "PSV Eindhoven", "club_country": "NED", "penalties": 0, "og": 0}, {"name": "Matheus Cunha", "goals": 2, "team": "Brazil", "club": "Manchester United FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Folarin Balogun", "goals": 2, "team": "USA", "club": "AS Monaco", "club_country": "FRA", "penalties": 0, "og": 0}, {"name": "Kai Havertz", "goals": 2, "team": "Germany", "club": "Arsenal FC", "club_country": "ENG", "penalties": 1, "og": 0}, {"name": "Yasin Ayari", "goals": 2, "team": "Sweden", "club": "Brighton & Hove Albion FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Elijah Just", "goals": 2, "team": "New Zealand", "club": "Motherwell FC", "club_country": "SCO", "penalties": 0, "og": 0}, {"name": "Kylian Mbappé", "goals": 2, "team": "France", "club": "Real Madrid C. F.", "club_country": "ESP", "penalties": 0, "og": 0}, {"name": "Aymen Hussein", "goals": 2, "team": "Norway", "club": "Al Karma SC", "club_country": "IRQ", "penalties": 0, "og": 0}, {"name": "Erling Haaland", "goals": 2, "team": "Norway", "club": "Manchester City FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Harry Kane", "goals": 2, "team": "England", "club": "FC Bayern München", "club_country": "GER", "penalties": 1, "og": 0}, {"name": "Julián Quiñones", "goals": 1, "team": "Mexico", "club": "Al Qadsiah FC", "club_country": "KSA", "penalties": 0, "og": 0}, {"name": "Raúl Jiménez", "goals": 1, "team": "Mexico", "club": "Fulham FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Hwang In-Beom", "goals": 1, "team": "South Korea", "club": "?", "club_country": "?", "penalties": 0, "og": 0}, {"name": "Oh Hyeon-Gyu", "goals": 1, "team": "South Korea", "club": "?", "club_country": "?", "penalties": 0, "og": 0}, {"name": "Ladislav Krejcí", "goals": 1, "team": "Czech Republic", "club": "?", "club_country": "?", "penalties": 0, "og": 0}, {"name": "Michal Sadílek", "goals": 1, "team": "Czech Republic", "club": "SK Slavia Praha", "club_country": "CZE", "penalties": 0, "og": 0}, {"name": "Teboho Mokoena", "goals": 1, "team": "South Africa", "club": "Mamelodi Sundowns FC", "club_country": "RSA", "penalties": 1, "og": 0}, {"name": "Luis Romo", "goals": 1, "team": "Mexico", "club": "CD Guadalajara", "club_country": "MEX", "penalties": 0, "og": 0}, {"name": "Jovo Lukić", "goals": 1, "team": "Bosnia & Herzegovina", "club": "Universitatea Cluj", "club_country": "ROU", "penalties": 0, "og": 0}, {"name": "Miro Muheim", "goals": 1, "team": "Qatar", "club": "Hamburger SV", "club_country": "GER", "penalties": 0, "og": 0}, {"name": "Breel Embolo", "goals": 1, "team": "Switzerland", "club": "Stade Rennais FC", "club_country": "FRA", "penalties": 1, "og": 0}, {"name": "Rubén Vargas", "goals": 1, "team": "Switzerland", "club": "Sevilla FC", "club_country": "ESP", "penalties": 0, "og": 0}, {"name": "Granit Xhaka", "goals": 1, "team": "Switzerland", "club": "Sunderland AFC", "club_country": "ENG", "penalties": 1, "og": 0}, {"name": "Ermin Mahmic", "goals": 1, "team": "Bosnia & Herzegovina", "club": "?", "club_country": "?", "penalties": 0, "og": 0}, {"name": "Nathan Saliba", "goals": 1, "team": "Canada", "club": "RSC Anderlecht", "club_country": "BEL", "penalties": 0, "og": 0}, {"name": "Mohamed Manai", "goals": 1, "team": "Canada", "club": "Al Shamal SC", "club_country": "QAT", "penalties": 0, "og": 0}, {"name": "John McGinn", "goals": 1, "team": "Scotland", "club": "Aston Villa FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Damian Bobadilla", "goals": 1, "team": "USA", "club": "?", "club_country": "?", "penalties": 0, "og": 0}, {"name": "Giovanni Reyna", "goals": 1, "team": "USA", "club": "Borussia Mönchengladbach", "club_country": "GER", "penalties": 0, "og": 0}, {"name": "Mauricio", "goals": 1, "team": "Paraguay", "club": "?", "club_country": "?", "penalties": 0, "og": 0}, {"name": "Nestory Irankunda", "goals": 1, "team": "Australia", "club": "Watford FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Connor Metcalfe", "goals": 1, "team": "Australia", "club": "FC St. Pauli", "club_country": "GER", "penalties": 0, "og": 0}, {"name": "Cameron Burgess", "goals": 1, "team": "USA", "club": "Swansea City AFC", "club_country": "WAL", "penalties": 0, "og": 0}, {"name": "Alex Freeman", "goals": 1, "team": "USA", "club": "Villarreal CF", "club_country": "ESP", "penalties": 0, "og": 0}, {"name": "Matías Galarza", "goals": 1, "team": "Paraguay", "club": "Atlanta United FC", "club_country": "USA", "penalties": 0, "og": 0}, {"name": "Felix Nmecha", "goals": 1, "team": "Germany", "club": "Borussia Dortmund", "club_country": "GER", "penalties": 0, "og": 0}, {"name": "Nico Schlotterbeck", "goals": 1, "team": "Germany", "club": "Borussia Dortmund", "club_country": "GER", "penalties": 0, "og": 0}, {"name": "Jamal Musiala", "goals": 1, "team": "Germany", "club": "FC Bayern München", "club_country": "GER", "penalties": 0, "og": 0}, {"name": "Nathaniel Brown", "goals": 1, "team": "Germany", "club": "Eintracht Frankfurt", "club_country": "GER", "penalties": 0, "og": 0}, {"name": "Deniz Undav", "goals": 1, "team": "Germany", "club": "VfB Stuttgart", "club_country": "GER", "penalties": 0, "og": 0}, {"name": "Livano Comenencia", "goals": 1, "team": "Curaçao", "club": "FC Zürich", "club_country": "SUI", "penalties": 0, "og": 0}, {"name": "Amad Diallo", "goals": 1, "team": "Ivory Coast", "club": "Manchester United FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Virgil van Dijk", "goals": 1, "team": "Netherlands", "club": "Liverpool FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Crysencio Summerville", "goals": 1, "team": "Netherlands", "club": "West Ham United FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Keito Nakamura", "goals": 1, "team": "Japan", "club": "Stade Reims", "club_country": "FRA", "penalties": 0, "og": 0}, {"name": "Daichi Kamada", "goals": 1, "team": "Japan", "club": "Crystal Palace FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Alexander Isak", "goals": 1, "team": "Sweden", "club": "Liverpool FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Viktor Gyökeres", "goals": 1, "team": "Sweden", "club": "Arsenal FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Mattias Svanberg", "goals": 1, "team": "Sweden", "club": "VfL Wolfsburg", "club_country": "GER", "penalties": 0, "og": 0}, {"name": "Omar Rekik", "goals": 1, "team": "Tunisia", "club": "NK Maribor", "club_country": "SVN", "penalties": 0, "og": 0}, {"name": "Mohamed Hany", "goals": 1, "team": "Belgium", "club": "Al Ahly FC", "club_country": "EGY", "penalties": 0, "og": 0}, {"name": "Emam Ashour", "goals": 1, "team": "Egypt", "club": "Al Ahly FC", "club_country": "EGY", "penalties": 0, "og": 0}, {"name": "Ramin Rezaeian", "goals": 1, "team": "Iran", "club": "Foolad Khuzestan FC", "club_country": "IRN", "penalties": 0, "og": 0}, {"name": "Mohammad Mohebbi", "goals": 1, "team": "Iran", "club": "?", "club_country": "?", "penalties": 0, "og": 0}, {"name": "Abdulelah Al-Amri", "goals": 1, "team": "Saudi Arabia", "club": "Al Nassr FC", "club_country": "KSA", "penalties": 0, "og": 0}, {"name": "Maxi Araújo", "goals": 1, "team": "Uruguay", "club": "?", "club_country": "?", "penalties": 0, "og": 0}, {"name": "Bradley Barcola", "goals": 1, "team": "France", "club": "Paris Saint-Germain", "club_country": "FRA", "penalties": 0, "og": 0}, {"name": "Ibrahim Mbaye", "goals": 1, "team": "Senegal", "club": "Paris Saint-Germain", "club_country": "FRA", "penalties": 0, "og": 0}, {"name": "Leo Østigard", "goals": 1, "team": "Norway", "club": "?", "club_country": "?", "penalties": 0, "og": 0}, {"name": "Romano Schmid", "goals": 1, "team": "Austria", "club": "SV Werder Bremen", "club_country": "GER", "penalties": 0, "og": 0}, {"name": "Yazan Al-Arab", "goals": 1, "team": "Austria", "club": "FC Seoul", "club_country": "KOR", "penalties": 0, "og": 0}, {"name": "Marko Arnautovic", "goals": 1, "team": "Austria", "club": "?", "club_country": "?", "penalties": 1, "og": 0}, {"name": "Ali Olwan", "goals": 1, "team": "Jordan", "club": "Al Sailiya SC", "club_country": "QAT", "penalties": 0, "og": 0}, {"name": "João Neves", "goals": 1, "team": "Portugal", "club": "Paris Saint-Germain", "club_country": "FRA", "penalties": 0, "og": 0}, {"name": "Yoane Wissa", "goals": 1, "team": "DR Congo", "club": "Newcastle United FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Abbosbek Fayzullaev", "goals": 1, "team": "Uzbekistan", "club": "Başakşehir FK", "club_country": "TUR", "penalties": 0, "og": 0}, {"name": "Daniel Muñoz", "goals": 1, "team": "Colombia", "club": "Crystal Palace FC", "club_country": "ENG", "penalties": 0, "og": 0}, {"name": "Luis Díaz", "goals": 1, "team": "Colombia", "club": "FC Bayern München", "club_country": "GER", "penalties": 0, "og": 0}, {"name": "Jáminton Campaz", "goals": 1, "team": "Colombia", "club": "?", "club_country": "?", "penalties": 0, "og": 0}, {"name": "Jude Bellingham", "goals": 1, "team": "England", "club": "Real Madrid C. F.", "club_country": "ESP", "penalties": 0, "og": 0}, {"name": "Marcus Rashford", "goals": 1, "team": "England", "club": "FC Barcelona", "club_country": "ESP", "penalties": 0, "og": 0}, {"name": "Martin Baturina", "goals": 1, "team": "Croatia", "club": "Como", "club_country": "ITA", "penalties": 0, "og": 0}, {"name": "Petar Musa", "goals": 1, "team": "Croatia", "club": "FC Dallas", "club_country": "USA", "penalties": 0, "og": 0}, {"name": "Caleb Yirenkyi", "goals": 1, "team": "Ghana", "club": "FC Nordsjælland", "club_country": "DEN", "penalties": 0, "og": 0}], "goal_timing": {"1-15": 11, "61-75": 13, "76-90": 16, "46-60": 17, "16-30": 14, "31-45": 13}, "grounds": [["Dallas (Arlington)", 9], ["Atlanta", 8], ["Los Angeles (Inglewood)", 8], ["New York/New Jersey (East Rutherford)", 8], ["Vancouver", 7], ["Boston (Foxborough)", 7], ["Miami (Miami Gardens)", 7], ["Houston", 7], ["Toronto", 6], ["San Francisco Bay Area (Santa Clara)", 6], ["Seattle", 6], ["Philadelphia", 6], ["Kansas City", 6], ["Mexico City", 5], ["Guadalajara (Zapopan)", 4], ["Monterrey (Guadalupe)", 4]], "kpis": {"total_goals": 96, "played_matches": 32, "avg_goals": 3.0, "draws": 10, "best_match": "Germany 7-1 Curaçao (8 gol)"}, "top_clubs": [{"club": "Real Madrid C. F.", "goals": 5, "country": "ESP", "scorers": [{"name": "Vinícius Júnior", "goals": 2, "nat_team": "Brazil"}, {"name": "Kylian Mbappé", "goals": 2, "nat_team": "France"}, {"name": "Jude Bellingham", "goals": 1, "nat_team": "England"}]}, {"club": "FC Bayern München", "goals": 4, "country": "GER", "scorers": [{"name": "Harry Kane", "goals": 2, "nat_team": "England"}, {"name": "Jamal Musiala", "goals": 1, "nat_team": "Germany"}, {"name": "Luis Díaz", "goals": 1, "nat_team": "Colombia"}]}, {"club": "Juventus FC", "goals": 3, "country": "ITA", "scorers": [{"name": "Jonathan David", "goals": 3, "nat_team": "Canada"}]}, {"club": "Manchester United FC", "goals": 3, "country": "ENG", "scorers": [{"name": "Matheus Cunha", "goals": 2, "nat_team": "Brazil"}, {"name": "Amad Diallo", "goals": 1, "nat_team": "Ivory Coast"}]}, {"club": "Arsenal FC", "goals": 3, "country": "ENG", "scorers": [{"name": "Kai Havertz", "goals": 2, "nat_team": "Germany"}, {"name": "Viktor Gyökeres", "goals": 1, "nat_team": "Sweden"}]}, {"club": "Paris Saint-Germain", "goals": 3, "country": "FRA", "scorers": [{"name": "Bradley Barcola", "goals": 1, "nat_team": "France"}, {"name": "Ibrahim Mbaye", "goals": 1, "nat_team": "Senegal"}, {"name": "João Neves", "goals": 1, "nat_team": "Portugal"}]}, {"club": "Inter Miami CF", "goals": 3, "country": "USA", "scorers": [{"name": "Lionel Messi", "goals": 3, "nat_team": "Argentina"}]}, {"club": "Southampton FC", "goals": 2, "country": "ENG", "scorers": [{"name": "Cyle Larin", "goals": 2, "nat_team": "Canada"}]}, {"club": "SC Freiburg", "goals": 2, "country": "GER", "scorers": [{"name": "Johan Manzambi", "goals": 2, "nat_team": "Switzerland"}]}, {"club": "PSV Eindhoven", "goals": 2, "country": "NED", "scorers": [{"name": "Ismael Saibari", "goals": 2, "nat_team": "Morocco"}]}, {"club": "AS Monaco", "goals": 2, "country": "FRA", "scorers": [{"name": "Folarin Balogun", "goals": 2, "nat_team": "USA"}]}, {"club": "Borussia Dortmund", "goals": 2, "country": "GER", "scorers": [{"name": "Felix Nmecha", "goals": 1, "nat_team": "Germany"}, {"name": "Nico Schlotterbeck", "goals": 1, "nat_team": "Germany"}]}, {"club": "Liverpool FC", "goals": 2, "country": "ENG", "scorers": [{"name": "Virgil van Dijk", "goals": 1, "nat_team": "Netherlands"}, {"name": "Alexander Isak", "goals": 1, "nat_team": "Sweden"}]}, {"club": "Crystal Palace FC", "goals": 2, "country": "ENG", "scorers": [{"name": "Daichi Kamada", "goals": 1, "nat_team": "Japan"}, {"name": "Daniel Muñoz", "goals": 1, "nat_team": "Colombia"}]}, {"club": "Brighton & Hove Albion FC", "goals": 2, "country": "ENG", "scorers": [{"name": "Yasin Ayari", "goals": 2, "nat_team": "Sweden"}]}, {"club": "Al Ahly FC", "goals": 2, "country": "EGY", "scorers": [{"name": "Mohamed Hany", "goals": 1, "nat_team": "Belgium"}, {"name": "Emam Ashour", "goals": 1, "nat_team": "Egypt"}]}, {"club": "Motherwell FC", "goals": 2, "country": "SCO", "scorers": [{"name": "Elijah Just", "goals": 2, "nat_team": "New Zealand"}]}, {"club": "Al Karma SC", "goals": 2, "country": "IRQ", "scorers": [{"name": "Aymen Hussein", "goals": 2, "nat_team": "Norway"}]}, {"club": "Manchester City FC", "goals": 2, "country": "ENG", "scorers": [{"name": "Erling Haaland", "goals": 2, "nat_team": "Norway"}]}, {"club": "Al Qadsiah FC", "goals": 1, "country": "KSA", "scorers": [{"name": "Julián Quiñones", "goals": 1, "nat_team": "Mexico"}]}], "top_club_nations": [{"country": "ENG", "goals": 22, "num_clubs": 13, "clubs": ["Fulham FC", "Southampton FC", "Sunderland AFC", "Aston Villa FC", "Manchester United FC", "Watford FC", "Arsenal FC", "Liverpool FC", "West Ham United FC", "Crystal Palace FC", "Brighton & Hove Albion FC", "Manchester City FC", "Newcastle United FC"], "scorers": [{"name": "Cyle Larin", "goals": 2, "nat_team": "Canada", "club": "Southampton FC"}, {"name": "Matheus Cunha", "goals": 2, "nat_team": "Brazil", "club": "Manchester United FC"}, {"name": "Kai Havertz", "goals": 2, "nat_team": "Germany", "club": "Arsenal FC"}, {"name": "Yasin Ayari", "goals": 2, "nat_team": "Sweden", "club": "Brighton & Hove Albion FC"}, {"name": "Erling Haaland", "goals": 2, "nat_team": "Norway", "club": "Manchester City FC"}]}, {"country": "GER", "goals": 15, "num_clubs": 10, "clubs": ["Hamburger SV", "SC Freiburg", "Borussia Mönchengladbach", "FC St. Pauli", "Borussia Dortmund", "FC Bayern München", "Eintracht Frankfurt", "VfB Stuttgart", "VfL Wolfsburg", "SV Werder Bremen"], "scorers": [{"name": "Johan Manzambi", "goals": 2, "nat_team": "Switzerland", "club": "SC Freiburg"}, {"name": "Harry Kane", "goals": 2, "nat_team": "England", "club": "FC Bayern München"}, {"name": "Miro Muheim", "goals": 1, "nat_team": "Qatar", "club": "Hamburger SV"}, {"name": "Giovanni Reyna", "goals": 1, "nat_team": "USA", "club": "Borussia Mönchengladbach"}, {"name": "Connor Metcalfe", "goals": 1, "nat_team": "Australia", "club": "FC St. Pauli"}]}, {"country": "ESP", "goals": 8, "num_clubs": 4, "clubs": ["Sevilla FC", "Real Madrid C. F.", "Villarreal CF", "FC Barcelona"], "scorers": [{"name": "Vinícius Júnior", "goals": 2, "nat_team": "Brazil", "club": "Real Madrid C. F."}, {"name": "Kylian Mbappé", "goals": 2, "nat_team": "France", "club": "Real Madrid C. F."}, {"name": "Rubén Vargas", "goals": 1, "nat_team": "Switzerland", "club": "Sevilla FC"}, {"name": "Alex Freeman", "goals": 1, "nat_team": "USA", "club": "Villarreal CF"}, {"name": "Jude Bellingham", "goals": 1, "nat_team": "England", "club": "Real Madrid C. F."}]}, {"country": "FRA", "goals": 7, "num_clubs": 4, "clubs": ["Stade Rennais FC", "AS Monaco", "Stade Reims", "Paris Saint-Germain"], "scorers": [{"name": "Folarin Balogun", "goals": 2, "nat_team": "USA", "club": "AS Monaco"}, {"name": "Breel Embolo", "goals": 1, "nat_team": "Switzerland", "club": "Stade Rennais FC"}, {"name": "Keito Nakamura", "goals": 1, "nat_team": "Japan", "club": "Stade Reims"}, {"name": "Bradley Barcola", "goals": 1, "nat_team": "France", "club": "Paris Saint-Germain"}, {"name": "Ibrahim Mbaye", "goals": 1, "nat_team": "Senegal", "club": "Paris Saint-Germain"}]}, {"country": "USA", "goals": 5, "num_clubs": 3, "clubs": ["Atlanta United FC", "Inter Miami CF", "FC Dallas"], "scorers": [{"name": "Lionel Messi", "goals": 3, "nat_team": "Argentina", "club": "Inter Miami CF"}, {"name": "Matías Galarza", "goals": 1, "nat_team": "Paraguay", "club": "Atlanta United FC"}, {"name": "Petar Musa", "goals": 1, "nat_team": "Croatia", "club": "FC Dallas"}]}, {"country": "ITA", "goals": 4, "num_clubs": 2, "clubs": ["Juventus FC", "Como"], "scorers": [{"name": "Jonathan David", "goals": 3, "nat_team": "Canada", "club": "Juventus FC"}, {"name": "Martin Baturina", "goals": 1, "nat_team": "Croatia", "club": "Como"}]}, {"country": "KSA", "goals": 2, "num_clubs": 2, "clubs": ["Al Qadsiah FC", "Al Nassr FC"], "scorers": [{"name": "Julián Quiñones", "goals": 1, "nat_team": "Mexico", "club": "Al Qadsiah FC"}, {"name": "Abdulelah Al-Amri", "goals": 1, "nat_team": "Saudi Arabia", "club": "Al Nassr FC"}]}, {"country": "QAT", "goals": 2, "num_clubs": 2, "clubs": ["Al Shamal SC", "Al Sailiya SC"], "scorers": [{"name": "Mohamed Manai", "goals": 1, "nat_team": "Canada", "club": "Al Shamal SC"}, {"name": "Ali Olwan", "goals": 1, "nat_team": "Jordan", "club": "Al Sailiya SC"}]}, {"country": "NED", "goals": 2, "num_clubs": 1, "clubs": ["PSV Eindhoven"], "scorers": [{"name": "Ismael Saibari", "goals": 2, "nat_team": "Morocco", "club": "PSV Eindhoven"}]}, {"country": "EGY", "goals": 2, "num_clubs": 1, "clubs": ["Al Ahly FC"], "scorers": [{"name": "Mohamed Hany", "goals": 1, "nat_team": "Belgium", "club": "Al Ahly FC"}, {"name": "Emam Ashour", "goals": 1, "nat_team": "Egypt", "club": "Al Ahly FC"}]}, {"country": "SCO", "goals": 2, "num_clubs": 1, "clubs": ["Motherwell FC"], "scorers": [{"name": "Elijah Just", "goals": 2, "nat_team": "New Zealand", "club": "Motherwell FC"}]}, {"country": "IRQ", "goals": 2, "num_clubs": 1, "clubs": ["Al Karma SC"], "scorers": [{"name": "Aymen Hussein", "goals": 2, "nat_team": "Norway", "club": "Al Karma SC"}]}, {"country": "CZE", "goals": 1, "num_clubs": 1, "clubs": ["SK Slavia Praha"], "scorers": [{"name": "Michal Sadílek", "goals": 1, "nat_team": "Czech Republic", "club": "SK Slavia Praha"}]}, {"country": "RSA", "goals": 1, "num_clubs": 1, "clubs": ["Mamelodi Sundowns FC"], "scorers": [{"name": "Teboho Mokoena", "goals": 1, "nat_team": "South Africa", "club": "Mamelodi Sundowns FC"}]}, {"country": "MEX", "goals": 1, "num_clubs": 1, "clubs": ["CD Guadalajara"], "scorers": [{"name": "Luis Romo", "goals": 1, "nat_team": "Mexico", "club": "CD Guadalajara"}]}, {"country": "ROU", "goals": 1, "num_clubs": 1, "clubs": ["Universitatea Cluj"], "scorers": [{"name": "Jovo Lukić", "goals": 1, "nat_team": "Bosnia & Herzegovina", "club": "Universitatea Cluj"}]}, {"country": "BEL", "goals": 1, "num_clubs": 1, "clubs": ["RSC Anderlecht"], "scorers": [{"name": "Nathan Saliba", "goals": 1, "nat_team": "Canada", "club": "RSC Anderlecht"}]}, {"country": "WAL", "goals": 1, "num_clubs": 1, "clubs": ["Swansea City AFC"], "scorers": [{"name": "Cameron Burgess", "goals": 1, "nat_team": "USA", "club": "Swansea City AFC"}]}, {"country": "SUI", "goals": 1, "num_clubs": 1, "clubs": ["FC Zürich"], "scorers": [{"name": "Livano Comenencia", "goals": 1, "nat_team": "Curaçao", "club": "FC Zürich"}]}, {"country": "SVN", "goals": 1, "num_clubs": 1, "clubs": ["NK Maribor"], "scorers": [{"name": "Omar Rekik", "goals": 1, "nat_team": "Tunisia", "club": "NK Maribor"}]}, {"country": "IRN", "goals": 1, "num_clubs": 1, "clubs": ["Foolad Khuzestan FC"], "scorers": [{"name": "Ramin Rezaeian", "goals": 1, "nat_team": "Iran", "club": "Foolad Khuzestan FC"}]}, {"country": "KOR", "goals": 1, "num_clubs": 1, "clubs": ["FC Seoul"], "scorers": [{"name": "Yazan Al-Arab", "goals": 1, "nat_team": "Austria", "club": "FC Seoul"}]}, {"country": "TUR", "goals": 1, "num_clubs": 1, "clubs": ["Başakşehir FK"], "scorers": [{"name": "Abbosbek Fayzullaev", "goals": 1, "nat_team": "Uzbekistan", "club": "Başakşehir FK"}]}, {"country": "DEN", "goals": 1, "num_clubs": 1, "clubs": ["FC Nordsjælland"], "scorers": [{"name": "Caleb Yirenkyi", "goals": 1, "nat_team": "Ghana", "club": "FC Nordsjælland"}]}], "highlights": {"top_total": [{"team1": "Germany", "team2": "Curaçao", "score": "7-1", "ht": "3-1", "total": 8, "ht_total": 4, "sh_total": 4, "date": "2026-06-14", "ground": "Houston", "group": "Group E", "goals1": ["Felix Nmecha", "Nico Schlotterbeck", "Kai Havertz (rig)", "Kai Havertz", "Jamal Musiala", "Nathaniel Brown", "Deniz Undav"], "goals2": ["Livano Comenencia"]}, {"team1": "Canada", "team2": "Qatar", "score": "6-0", "ht": "3-0", "total": 6, "ht_total": 3, "sh_total": 3, "date": "2026-06-18", "ground": "Vancouver", "group": "Group B", "goals1": ["Cyle Larin", "Jonathan David", "Jonathan David", "Nathan Saliba", "Mohamed Manai", "Jonathan David"], "goals2": []}, {"team1": "Sweden", "team2": "Tunisia", "score": "5-1", "ht": "2-1", "total": 6, "ht_total": 3, "sh_total": 3, "date": "2026-06-14", "ground": "Monterrey (Guadalupe)", "group": "Group F", "goals1": ["Yasin Ayari", "Alexander Isak", "Viktor Gyökeres", "Mattias Svanberg", "Yasin Ayari"], "goals2": ["Omar Rekik"]}, {"team1": "England", "team2": "Croatia", "score": "4-2", "ht": "2-2", "total": 6, "ht_total": 4, "sh_total": 2, "date": "2026-06-17", "ground": "Dallas (Arlington)", "group": "Group L", "goals1": ["Harry Kane (rig)", "Harry Kane", "Jude Bellingham", "Marcus Rashford"], "goals2": ["Martin Baturina", "Petar Musa"]}, {"team1": "Switzerland", "team2": "Bosnia & Herzegovina", "score": "4-1", "ht": "0-0", "total": 5, "ht_total": 0, "sh_total": 5, "date": "2026-06-18", "ground": "Los Angeles (Inglewood)", "group": "Group B", "goals1": ["Johan Manzambi", "Rubén Vargas", "Johan Manzambi", "Granit Xhaka (rig)"], "goals2": ["Ermin Mahmic"]}], "top_ht": [{"team1": "Germany", "team2": "Curaçao", "score": "7-1", "ht": "3-1", "total": 8, "ht_total": 4, "sh_total": 4, "date": "2026-06-14", "ground": "Houston", "group": "Group E", "goals1": ["Felix Nmecha", "Nico Schlotterbeck", "Kai Havertz (rig)", "Kai Havertz", "Jamal Musiala", "Nathaniel Brown", "Deniz Undav"], "goals2": ["Livano Comenencia"]}, {"team1": "England", "team2": "Croatia", "score": "4-2", "ht": "2-2", "total": 6, "ht_total": 4, "sh_total": 2, "date": "2026-06-17", "ground": "Dallas (Arlington)", "group": "Group L", "goals1": ["Harry Kane (rig)", "Harry Kane", "Jude Bellingham", "Marcus Rashford"], "goals2": ["Martin Baturina", "Petar Musa"]}, {"team1": "Canada", "team2": "Qatar", "score": "6-0", "ht": "3-0", "total": 6, "ht_total": 3, "sh_total": 3, "date": "2026-06-18", "ground": "Vancouver", "group": "Group B", "goals1": ["Cyle Larin", "Jonathan David", "Jonathan David", "Nathan Saliba", "Mohamed Manai", "Jonathan David"], "goals2": []}, {"team1": "Brazil", "team2": "Haiti", "score": "3-0", "ht": "3-0", "total": 3, "ht_total": 3, "sh_total": 0, "date": "2026-06-19", "ground": "Philadelphia", "group": "Group C", "goals1": ["Matheus Cunha", "Matheus Cunha", "Vinícius Júnior"], "goals2": []}, {"team1": "USA", "team2": "Paraguay", "score": "4-1", "ht": "3-0", "total": 5, "ht_total": 3, "sh_total": 2, "date": "2026-06-12", "ground": "Los Angeles (Inglewood)", "group": "Group D", "goals1": ["Damian Bobadilla", "Folarin Balogun", "Folarin Balogun", "Giovanni Reyna"], "goals2": ["Mauricio"]}], "top_sh": [{"team1": "Switzerland", "team2": "Bosnia & Herzegovina", "score": "4-1", "ht": "0-0", "total": 5, "ht_total": 0, "sh_total": 5, "date": "2026-06-18", "ground": "Los Angeles (Inglewood)", "group": "Group B", "goals1": ["Johan Manzambi", "Rubén Vargas", "Johan Manzambi", "Granit Xhaka (rig)"], "goals2": ["Ermin Mahmic"]}, {"team1": "Germany", "team2": "Curaçao", "score": "7-1", "ht": "3-1", "total": 8, "ht_total": 4, "sh_total": 4, "date": "2026-06-14", "ground": "Houston", "group": "Group E", "goals1": ["Felix Nmecha", "Nico Schlotterbeck", "Kai Havertz (rig)", "Kai Havertz", "Jamal Musiala", "Nathaniel Brown", "Deniz Undav"], "goals2": ["Livano Comenencia"]}, {"team1": "Netherlands", "team2": "Japan", "score": "2-2", "ht": "0-0", "total": 4, "ht_total": 0, "sh_total": 4, "date": "2026-06-14", "ground": "Dallas (Arlington)", "group": "Group F", "goals1": ["Virgil van Dijk", "Crysencio Summerville"], "goals2": ["Keito Nakamura", "Daichi Kamada"]}, {"team1": "France", "team2": "Senegal", "score": "3-1", "ht": "0-0", "total": 4, "ht_total": 0, "sh_total": 4, "date": "2026-06-16", "ground": "New York/New Jersey (East Rutherford)", "group": "Group I", "goals1": ["Kylian Mbappé", "Bradley Barcola", "Kylian Mbappé"], "goals2": ["Ibrahim Mbaye"]}, {"team1": "South Korea", "team2": "Czech Republic", "score": "2-1", "ht": "0-0", "total": 3, "ht_total": 0, "sh_total": 3, "date": "2026-06-11", "ground": "Guadalajara (Zapopan)", "group": "Group A", "goals1": ["Hwang In-Beom", "Oh Hyeon-Gyu"], "goals2": ["Ladislav Krejcí"]}]}, "goal_timing_fine": [{"min": 1, "goals": 2}, {"min": 6, "goals": 7}, {"min": 11, "goals": 2}, {"min": 16, "goals": 4}, {"min": 21, "goals": 5}, {"min": 26, "goals": 5}, {"min": 31, "goals": 3}, {"min": 36, "goals": 5}, {"min": 41, "goals": 5}, {"min": 46, "goals": 10}, {"min": 51, "goals": 2}, {"min": 56, "goals": 5}, {"min": 61, "goals": 4}, {"min": 66, "goals": 5}, {"min": 71, "goals": 4}, {"min": 76, "goals": 7}, {"min": 81, "goals": 5}, {"min": 86, "goals": 4}], "top_team_goals": [{"name": "Canada", "p": 2, "w": 1, "d": 1, "l": 0, "gf": 7, "ga": 1, "pts": 4, "group": "Group B", "gd": 6}, {"name": "Germany", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 7, "ga": 1, "pts": 3, "group": "Group E", "gd": 6}, {"name": "USA", "p": 2, "w": 2, "d": 0, "l": 0, "gf": 6, "ga": 1, "pts": 6, "group": "Group D", "gd": 5}, {"name": "Switzerland", "p": 2, "w": 1, "d": 1, "l": 0, "gf": 5, "ga": 2, "pts": 4, "group": "Group B", "gd": 3}, {"name": "Sweden", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 5, "ga": 1, "pts": 3, "group": "Group F", "gd": 4}, {"name": "Brazil", "p": 2, "w": 1, "d": 1, "l": 0, "gf": 4, "ga": 1, "pts": 4, "group": "Group C", "gd": 3}, {"name": "Norway", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 4, "ga": 1, "pts": 3, "group": "Group I", "gd": 3}, {"name": "England", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 4, "ga": 2, "pts": 3, "group": "Group L", "gd": 2}, {"name": "Mexico", "p": 2, "w": 2, "d": 0, "l": 0, "gf": 3, "ga": 0, "pts": 6, "group": "Group A", "gd": 3}, {"name": "France", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 3, "ga": 1, "pts": 3, "group": "Group I", "gd": 2}], "top_team_pts": [{"name": "USA", "p": 2, "w": 2, "d": 0, "l": 0, "gf": 6, "ga": 1, "pts": 6, "group": "Group D", "gd": 5}, {"name": "Mexico", "p": 2, "w": 2, "d": 0, "l": 0, "gf": 3, "ga": 0, "pts": 6, "group": "Group A", "gd": 3}, {"name": "Canada", "p": 2, "w": 1, "d": 1, "l": 0, "gf": 7, "ga": 1, "pts": 4, "group": "Group B", "gd": 6}, {"name": "Switzerland", "p": 2, "w": 1, "d": 1, "l": 0, "gf": 5, "ga": 2, "pts": 4, "group": "Group B", "gd": 3}, {"name": "Brazil", "p": 2, "w": 1, "d": 1, "l": 0, "gf": 4, "ga": 1, "pts": 4, "group": "Group C", "gd": 3}, {"name": "Morocco", "p": 2, "w": 1, "d": 1, "l": 0, "gf": 2, "ga": 1, "pts": 4, "group": "Group C", "gd": 1}, {"name": "Germany", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 7, "ga": 1, "pts": 3, "group": "Group E", "gd": 6}, {"name": "Sweden", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 5, "ga": 1, "pts": 3, "group": "Group F", "gd": 4}, {"name": "Norway", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 4, "ga": 1, "pts": 3, "group": "Group I", "gd": 3}, {"name": "Argentina", "p": 1, "w": 1, "d": 0, "l": 0, "gf": 3, "ga": 0, "pts": 3, "group": "Group J", "gd": 3}]};
+
+// ── Flags ─────────────────────────────────────────────────────────────────────
+const NAT_FLAGS = {
+  'Mexico':'🇲🇽','South Africa':'🇿🇦','South Korea':'🇰🇷','Czech Republic':'🇨🇿',
+  'Canada':'🇨🇦','Bosnia & Herzegovina':'🇧🇦','Qatar':'🇶🇦','Switzerland':'🇨🇭',
+  'Brazil':'🇧🇷','Morocco':'🇲🇦','Haiti':'🇭🇹','Scotland':'🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+  'USA':'🇺🇸','Paraguay':'🇵🇾','Australia':'🇦🇺','Turkey':'🇹🇷',
+  'Germany':'🇩🇪','Curaçao':'🇨🇼','Ivory Coast':'🇨🇮','Ecuador':'🇪🇨',
+  'Netherlands':'🇳🇱','Japan':'🇯🇵','Sweden':'🇸🇪','Tunisia':'🇹🇳',
+  'Belgium':'🇧🇪','Egypt':'🇪🇬','Iran':'🇮🇷','New Zealand':'🇳🇿',
+  'Spain':'🇪🇸','Cape Verde':'🇨🇻','Saudi Arabia':'🇸🇦','Uruguay':'🇺🇾',
+  'France':'🇫🇷','Senegal':'🇸🇳','Iraq':'🇮🇶','Norway':'🇳🇴',
+  'Argentina':'🇦🇷','Algeria':'🇩🇿','Austria':'🇦🇹','Jordan':'🇯🇴',
+  'Portugal':'🇵🇹','DR Congo':'🇨🇩','Uzbekistan':'🇺🇿','Colombia':'🇨🇴',
+  'England':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Croatia':'🇭🇷','Ghana':'🇬🇭','Panama':'🇵🇦'
+};
+const LEAGUE_FLAGS = {
+  'ENG':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','GER':'🇩🇪','ESP':'🇪🇸','FRA':'🇫🇷','ITA':'🇮🇹',
+  'POR':'🇵🇹','NED':'🇳🇱','BEL':'🇧🇪','TUR':'🇹🇷','USA':'🇺🇸',
+  'MEX':'🇲🇽','BRA':'🇧🇷','ARG':'🇦🇷','JPN':'🇯🇵','KSA':'🇸🇦',
+  'QAT':'🇶🇦','CZE':'🇨🇿','SUI':'🇨🇭','GRE':'🇬🇷','CRO':'🇭🇷',
+  'SWE':'🇸🇪','NOR':'🇳🇴','DEN':'🇩🇰','AUT':'🇦🇹','SCO':'🏴󠁧󠁢󠁳󠁣󠁴󠁿'
+};
+const LEAGUE_NAMES = {
+  'ENG':'Premier League','GER':'Bundesliga','ESP':'La Liga','FRA':'Ligue 1','ITA':'Serie A',
+  'POR':'Primeira Liga','NED':'Eredivisie','BEL':'Pro League','TUR':'Süper Lig','USA':'MLS',
+  'MEX':'Liga MX','BRA':'Brasileirão','ARG':'Primera División','KSA':'Saudi Pro League',
+  'QAT':'Qatar Stars League','CZE':'Czech 1. Liga','SUI':'Super League','JPN':'J1 League'
+};
+const COLORS=['#e8b923','#3b82f6','#10b981','#ef4444','#a855f7','#f97316','#06b6d4','#ec4899','#84cc16','#f59e0b','#6366f1','#14b8a6','#fb7185','#34d399','#fbbf24'];
+
+function flag(n){ return NAT_FLAGS[n]||'🏳️'; }
+function lflag(cc){ return LEAGUE_FLAGS[cc]||'🏳️'; }
+function lname(cc){ return LEAGUE_NAMES[cc]||cc; }
+function fdate(d){ return new Date(d+'T12:00:00Z').toLocaleDateString('it-IT',{day:'2-digit',month:'short'}); }
+
+// ── View ─────────────────────────────────────────────────────────────────────
+let builtViews = {};
+function showView(v, btn) {
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(!builtViews[v]){ builders[v]&&builders[v](); builtViews[v]=true; }
+}
+
+// ── Overview ─────────────────────────────────────────────────────────────────
+function buildOverview(){
+  const k=DATA.kpis;
+  document.getElementById('kpi-played').textContent=k.played_matches;
+  document.getElementById('kpi-goals').textContent=k.total_goals;
+  document.getElementById('kpi-avg').textContent=k.avg_goals+' gol/partita';
+  document.getElementById('kpi-draws').textContent=k.draws;
+  document.getElementById('kpi-draws-pct').textContent=Math.round(k.draws/k.played_matches*100)+'% delle partite';
+  const ts=DATA.top_scorers[0];
+  document.getElementById('kpi-top').textContent=flag(ts.team)+' '+ts.name;
+  document.getElementById('kpi-top-sub').textContent=ts.goals+' gol · '+ts.team;
+  const tc=DATA.top_clubs[0];
+  document.getElementById('kpi-topclub').textContent='🏛 '+tc.club;
+  document.getElementById('kpi-topclub-sub').textContent=tc.goals+' gol · '+lflag(tc.country)+' '+lname(tc.country);
+  const tn=DATA.top_club_nations[0];
+  document.getElementById('kpi-topnat').textContent=lflag(tn.country)+' '+lname(tn.country);
+  document.getElementById('kpi-topnat-sub').textContent=tn.goals+' gol · '+tn.num_clubs+' club';
+  buildUpcoming();
+  buildGoalTimingChart();
+  buildTeamGoalsChart();
+}
+
+function buildUpcoming(){
+  document.getElementById('upcoming-list').innerHTML=DATA.upcoming.slice(0,12).map(m=>`
+    <div class="upc-row">
+      <div class="upc-date">${fdate(m.date)}</div>
+      <div class="upc-teams">${flag(m.team1)} ${m.team1} <span style="color:var(--text2);font-weight:400">vs</span> ${flag(m.team2)} ${m.team2}</div>
+      <div class="upc-g">${m.group.replace('Group','G')}<br>${m.ground}</div>
+    </div>`).join('');
+}
+
+function buildGoalTimingChart(){
+  const gt=DATA.goal_timing; const labels=Object.keys(gt); const vals=Object.values(gt);
+  new Chart(document.getElementById('goalTimingChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:labels.map(l=>l+' min'),datasets:[{label:'Gol',data:vals,backgroundColor:COLORS.slice(0,6),borderRadius:5,borderSkipped:false}]},
+    options:{responsive:true,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8',font:{size:10}}},y:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8'}}}}
+  });
+}
+
+function buildTeamGoalsChart(){
+  const ts=DATA.top_team_goals;
+  new Chart(document.getElementById('teamGoalsChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:ts.map(t=>flag(t.name)+' '+t.name),
+      datasets:[{label:'GF',data:ts.map(t=>t.gf),backgroundColor:'#3b82f6',borderRadius:3},{label:'GA',data:ts.map(t=>t.ga),backgroundColor:'#ef4444',borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,
+      plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}},
+      scales:{x:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8',font:{size:10}}},y:{grid:{color:'#1e2d45'},ticks:{color:'#e2e8f0',font:{size:10}}}}}
+  });
+}
+
+// ── Highlights ────────────────────────────────────────────────────────────────
+function buildHighlights(){
+  function renderHLCard(m,badge,color){
+    const g1txt=m.goals1&&m.goals1.length?m.goals1.join(', '):'–';
+    const g2txt=m.goals2&&m.goals2.length?m.goals2.join(', '):'–';
+    return `<div class="hl-card">
+      <div class="hl-badge" style="background:${color};color:${color==='#e8b923'?'#000':'#fff'}">${badge}</div>
+      <div class="hl-match">
+        <div class="hl-team">${flag(m.team1)} ${m.team1}</div>
+        <div class="hl-score">${m.score}</div>
+        <div class="hl-team r">${m.team2} ${flag(m.team2)}</div>
+      </div>
+      <div class="hl-ht">⏱ Intervallo: ${m.ht} &nbsp;|&nbsp; 🥅 ${m.total} gol totali (1T: ${m.ht_total} · 2T: ${m.sh_total})</div>
+      <div class="hl-goallist">⚽ ${g1txt}<br>🎯 ${g2txt}</div>
+      <div class="hl-meta">${fdate(m.date)} &nbsp;·&nbsp; ${m.ground}${m.group?' &nbsp;·&nbsp; '+m.group:''}</div>
+    </div>`;
+  }
+  document.getElementById('hl-total').innerHTML=DATA.highlights.top_total.map((m,i)=>renderHLCard(m,['🥇','🥈','🥉','4°','5°'][i]+' '+m.total+' gol','#e8b923')).join('');
+  document.getElementById('hl-ht').innerHTML=DATA.highlights.top_ht.map((m,i)=>renderHLCard(m,['🥇','🥈','🥉'][i]+' '+m.ht_total+' gol 1T','#3b82f6')).join('');
+  document.getElementById('hl-sh').innerHTML=DATA.highlights.top_sh.map((m,i)=>renderHLCard(m,['🥇','🥈','🥉'][i]+' '+m.sh_total+' gol 2T','#ef4444')).join('');
+
+  // Heatmap fine
+  const tf=DATA.goal_timing_fine; const maxG=Math.max(...tf.map(x=>x.goals));
+  const cols=['#1e3a5f','#1d4ed8','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#fde68a','#fbbf24','#f59e0b','#ef4444','#dc2626'];
+  document.getElementById('heatmap-container').innerHTML=`<div class="hmap">${tf.map(b=>{
+    const pct=Math.round(b.goals/maxG*100);
+    const ci=Math.round(pct/100*(cols.length-1));
+    return `<div class="hmap-row">
+      <div class="hmap-label">${b.min}′–${b.min+4}′</div>
+      <div class="hmap-bar"><div class="hmap-fill" style="width:${pct}%;background:${cols[ci]}">${b.goals>0?b.goals:''}</div></div>
+      <div class="hmap-val">${b.goals}</div>
+    </div>`;
+  }).join('')}</div>`;
+
+  // Timing fine chart
+  new Chart(document.getElementById('goalTimingFineChart').getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:tf.map(b=>b.min+"'"),
+      datasets:[{label:'Gol',data:tf.map(b=>b.goals),
+        backgroundColor:tf.map(b=>{const p=b.goals/maxG;return `rgba(232,185,35,${0.3+p*0.7})`}),
+        borderRadius:3,borderSkipped:false}]
+    },
+    options:{responsive:true,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8',font:{size:10}}},y:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8',stepSize:1}}}}
+  });
+
+  // Top team goals
+  const ttg=DATA.top_team_goals;
+  document.getElementById('top-team-goals').innerHTML=`<table class="tbl">
+    <thead><tr><th>#</th><th>Squadra</th><th>P</th><th>GF</th><th>GA</th><th>DR</th><th>Pts</th></tr></thead>
+    <tbody>${ttg.map((t,i)=>`<tr>
+      <td style="color:${i<2?'var(--gold)':i<5?'var(--accent2)':'var(--text2)'}">${i+1}</td>
+      <td><strong>${flag(t.name)} ${t.name}</strong></td>
+      <td>${t.p}</td>
+      <td style="color:var(--accent3);font-weight:700">${t.gf}</td>
+      <td style="color:var(--accent4)">${t.ga}</td>
+      <td style="color:${t.gd>0?'var(--accent3)':t.gd<0?'var(--accent4)':'var(--text2)'}">${t.gd>0?'+':''}${t.gd}</td>
+      <td><span class="pts-b">${t.pts}</span></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+
+  const ttp=DATA.top_team_pts;
+  document.getElementById('top-team-pts').innerHTML=`<table class="tbl">
+    <thead><tr><th>#</th><th>Squadra</th><th>P</th><th>V</th><th>GF</th><th>DR</th><th>Pts</th></tr></thead>
+    <tbody>${ttp.map((t,i)=>`<tr>
+      <td style="color:${i<2?'var(--gold)':i<5?'var(--accent2)':'var(--text2)'}">${i+1}</td>
+      <td><strong>${flag(t.name)} ${t.name}</strong></td>
+      <td>${t.p}</td><td>${t.w}</td>
+      <td style="color:var(--accent3);font-weight:700">${t.gf}</td>
+      <td style="color:${t.gd>0?'var(--accent3)':t.gd<0?'var(--accent4)':'var(--text2)'}">${t.gd>0?'+':''}${t.gd}</td>
+      <td><span class="pts-b">${t.pts}</span></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+// ── Groups ────────────────────────────────────────────────────────────────────
+let curGroup='Group A';
+function buildGroups(){
+  const gs=Object.keys(DATA.groups_standings);
+  document.getElementById('group-tabs').innerHTML=gs.map(g=>`<div class="tab ${g===curGroup?'active':''}" onclick="selGroup('${g}',this)">${g.replace('Group ','Gr. ')}</div>`).join('');
+  renderGroup(curGroup);
+}
+function selGroup(g,el){
+  curGroup=g;
+  document.querySelectorAll('#group-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active'); renderGroup(g);
+}
+function renderGroup(g){
+  const teams=DATA.groups_standings[g];
+  const gm=DATA.results.filter(r=>r.group===g);
+  document.getElementById('group-content').innerHTML=`
+    <div class="card">
+      <h3>🏆 ${g} – Classifica</h3>
+      <table class="tbl"><thead><tr><th>#</th><th>Squadra</th><th>G</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GS</th><th>DR</th><th>Pts</th></tr></thead>
+      <tbody>${teams.map((t,i)=>`<tr class="${i<2?'qrow':i===2&&t.p>0?'q3row':''}">
+        <td style="color:var(--text2)">${i+1}</td>
+        <td><strong>${flag(t.name)} ${t.name}</strong></td>
+        <td>${t.p}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
+        <td style="color:var(--accent3);font-weight:700">${t.gf}</td>
+        <td style="color:var(--accent4)">${t.ga}</td>
+        <td style="color:${t.gd>0?'var(--accent3)':t.gd<0?'var(--accent4)':'var(--text2)'}">${t.gd>0?'+':''}${t.gd}</td>
+        <td><span class="pts-b">${t.pts}</span></td>
+      </tr>`).join('')}</tbody></table>
+      <div style="margin-top:10px;font-size:11px;color:#64748b">
+        <span style="border-left:3px solid var(--accent3);padding-left:6px;margin-right:12px">Qualificate</span>
+        <span style="border-left:3px solid var(--accent2);padding-left:6px">Possibile 3° migliore</span>
+      </div>
+    </div>
+    <div class="card" style="margin-top:var(--gap)">
+      <h3>⚽ Partite ${g}</h3>
+      ${gm.length===0?'<div style="color:var(--text2);font-size:13px">Nessuna partita ancora giocata</div>'
+        :gm.map(m=>`<div class="ri">
+          <div class="ri-teams"><span class="tn">${flag(m.team1)} ${m.team1}</span>
+          <span class="sb">${m.score}</span>
+          <span class="tn r">${m.team2} ${flag(m.team2)}</span></div>
+          <div class="ri-meta">${fdate(m.date)}<br>${m.ground}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ── Results ───────────────────────────────────────────────────────────────────
+let resFilter='ALL';
+function buildResults(){
+  const gs=['ALL',...Object.keys(DATA.groups_standings)];
+  document.getElementById('result-tabs').innerHTML=gs.map(g=>`<div class="tab ${g===resFilter?'active':''}" onclick="filterRes('${g}',this)">${g==='ALL'?'🌍 Tutti':g}</div>`).join('');
+  renderResults();
+}
+function filterRes(g,el){
+  resFilter=g;
+  document.querySelectorAll('#result-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active'); renderResults();
+}
+function renderResults(){
+  const res=resFilter==='ALL'?DATA.results:DATA.results.filter(r=>r.group===resFilter);
+  document.getElementById('res-count').textContent=res.length;
+  document.getElementById('results-list').innerHTML=res.map(m=>`
+    <div class="ri">
+      <span class="gtag">${m.group.replace('Group ','G')}</span>
+      <div class="ri-teams"><span class="tn">${flag(m.team1)} ${m.team1}</span>
+      <span class="sb">${m.score}</span>
+      <span class="tn r">${m.team2} ${flag(m.team2)}</span></div>
+      <div class="ri-meta">${fdate(m.date)}<br><span style="font-size:9px">${m.ground}</span></div>
+    </div>`).join('');
+}
+
+// ── Scorers ───────────────────────────────────────────────────────────────────
+function buildScorers(){
+  document.getElementById('scorer-count').textContent=DATA.top_scorers.length;
+  const ranks=['r1','r2','r3'];
+  document.getElementById('scorers-full').innerHTML=DATA.top_scorers.map((s,i)=>`
+    <div class="sc-row">
+      <div class="sc-rank ${i<3?ranks[i]:''}">${i+1}</div>
+      <div class="sc-info">
+        <div class="sc-name">${flag(s.team)} ${s.name}</div>
+        <div class="sc-meta">${s.team}${s.penalties?' · '+s.penalties+' rig':''}</div>
+        <div class="sc-club">${lflag(s.club_country)} ${s.club} <span style="color:var(--text2)">[${s.club_country}]</span></div>
+      </div>
+      <div class="sc-goals-n">${s.goals}</div>
+    </div>`).join('');
+
+  // Club chart for scorers view
+  const topC=DATA.top_clubs.slice(0,8);
+  new Chart(document.getElementById('scorerClubChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:topC.map(c=>lflag(c.country)+' '+c.club.replace(' F.C.','').replace(' FC','').replace(' C. F.','').replace(' CF','')),
+      datasets:[{label:'Gol',data:topC.map(c=>c.goals),backgroundColor:COLORS.slice(0,8),borderRadius:5,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8'}},y:{grid:{color:'#1e2d45'},ticks:{color:'#e2e8f0',font:{size:10}}}}}
+  });
+}
+
+// ── Clubs ─────────────────────────────────────────────────────────────────────
+function buildClubs(){
+  document.getElementById('club-count').textContent=DATA.top_clubs.length;
+  document.getElementById('clubs-list').innerHTML=DATA.top_clubs.map((c,i)=>`
+    <div class="club-row">
+      <div class="club-logo">${lflag(c.country)}</div>
+      <div class="club-info">
+        <div class="club-name">${['🥇','🥈','🥉'][i]||''} ${c.club}</div>
+        <div class="club-meta">${lname(c.country)} [${c.country}] &nbsp;·&nbsp; ${c.scorers.slice(0,3).map(s=>flag(s.nat_team)+s.name+' ('+s.goals+')').join(' · ')}</div>
+      </div>
+      <div class="club-goals">${c.goals}</div>
+    </div>`).join('');
+
+  // Nation chart
+  const tn=DATA.top_club_nations.slice(0,10);
+  new Chart(document.getElementById('clubNationChart').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:tn.map(n=>lflag(n.country)+' '+lname(n.country)),
+      datasets:[{data:tn.map(n=>n.goals),backgroundColor:COLORS,borderWidth:2,borderColor:'#111827'}]},
+    options:{responsive:true,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}}}
+  });
+
+  // Nation bars
+  const maxG=tn[0].goals;
+  document.getElementById('nation-bars').innerHTML=`<div style="margin-top:8px">${tn.map(n=>`
+    <div class="nat-bar">
+      <div class="nat-flag">${lflag(n.country)}</div>
+      <div class="nat-name">${n.country}</div>
+      <div class="nat-track"><div class="nat-fill" style="width:${Math.round(n.goals/maxG*100)}%"></div></div>
+      <div class="nat-count">${n.goals}</div>
+    </div>`).join('')}</div>`;
+}
+
+// ── Builder map ───────────────────────────────────────────────────────────────
+const builders = {
+  overview: buildOverview,
+  highlights: buildHighlights,
+  groups: buildGroups,
+  results: buildResults,
+  scorers: buildScorers,
+  clubs: buildClubs
+};
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+buildOverview(); builtViews['overview']=true;
+</script>
+</body>
+</html>
